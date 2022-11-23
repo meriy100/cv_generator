@@ -15,7 +15,7 @@ const findTableWithText = (body, text) => {
     if (child.getType() ==  DocumentApp.ElementType.TABLE) {
       const table = child.asTable();
       if (table.findText(text)) {
-        return i;  
+        return i;
       }
     }
   }
