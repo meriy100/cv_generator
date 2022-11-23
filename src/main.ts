@@ -3,13 +3,13 @@ const fileCopy = (timestamp) => {
   const formattedDate = Utilities.formatDate(timestamp, "JST", "yyyy-MM-dd");
   const fileName = "職務経歴書";
   const sourcefile = DriveApp.getFileById("1kFrEOKuT-ddIpN21D8dhzJwtWeUvcS2Zm7EolgKMJkQ");
-  newFile = sourcefile.makeCopy(`${fileName}-${formattedDate}`);
+  const newFile = sourcefile.makeCopy(`${fileName}-${formattedDate}`);
 
   return newFile.getId();
 }
 
 const findTableWithText = (body, text) => {
-  for (var i=0; i<body.getNumChildren(); i++) {
+  for (let i=0; i<body.getNumChildren(); i++) {
     const child = body.getChild(i);
 
     if (child.getType() ==  DocumentApp.ElementType.TABLE) {
@@ -22,13 +22,13 @@ const findTableWithText = (body, text) => {
 };
 
 const findListItemWithText = (body, text) => {
-  var index = -1;
+  let index = -1;
 
-  for (var i=0; i<body.getNumChildren(); i++) {
+  for (let i=0; i<body.getNumChildren(); i++) {
     const child = body.getChild(i);
 
     if (child.getType() ==  DocumentApp.ElementType.LIST_ITEM) {
-      var listItem = child.asListItem();
+      const listItem = child.asListItem();
       if (listItem.getText() == text) {
          index = i;
       }
@@ -44,7 +44,7 @@ const replaceListItem = (body, placeholder, list) => {
   listItem.setGlyphType(glyphType);
   listItem.setText(list[0]);
 
-  for (var i=1; i<list.length; i++) {
+  for (let i=1; i<list.length; i++) {
     const li = body.insertListItem(index + i, list[i]);  
     li.setGlyphType(glyphType);
     li.setListId(listItem);
@@ -65,11 +65,11 @@ const fetchHistories = () => {
 };  
 
 const getHistoryTemplate = (body) => {
-  for (var i=0; i<body.getNumChildren(); i++) {
+  for (let i=0; i<body.getNumChildren(); i++) {
     const child = body.getChild(i);
     if (child.getText() == "***history-template-start***") {
       const historyTemplate = [];
-      for (var j=i+1; j<body.getNumChildren(); j++) {
+      for (let j=i+1; j<body.getNumChildren(); j++) {
         const child2 = body.getChild(j);
         if (child2.getText() == "***history-template-end***") {
           return {historyTemplate, start: i, end: j};
@@ -85,8 +85,8 @@ function main() {
 
 
   const docID = fileCopy(timestamp);
-  const doc = DocumentApp.openById(newFile.getId());
-  let body = doc.getBody();
+  const doc = DocumentApp.openById(docID);
+  const body = doc.getBody();
 
   const profile = fetchProfile();
 
@@ -98,7 +98,7 @@ function main() {
   body.replaceText("{profile.pr}", profile.pr);
 
   const { historyTemplate, start, end } = getHistoryTemplate(body);
-  for (var i=start; i <= end; i++) {
+  for (let i=start; i <= end; i++) {
     body.removeChild(body.getChild(start));
   }
 

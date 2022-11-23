@@ -2,8 +2,9 @@
   "name": "cv_generator",
   "version": "1.0.0",
   "description": "",
-  "main": "src/main.js",
+  "main": "src/main.ts",
   "scripts": {
+    "lint": "eslint src/**/*.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,9 +20,14 @@
   "homepage": "https://github.com/meriy100/cv_generator#readme",
   "devDependencies": {
     "@google/clasp": "^2.4.2",
+    "@typescript-eslint/eslint-plugin": "^5.44.0",
+    "@typescript-eslint/parser": "^5.44.0",
     "tslint": "^6.1.3"
   },
   "dependencies": {
-    "@types/google-apps-script": "^1.0.56"
+    "@types/google-apps-script": "^1.0.56",
+    "eslint": "^8.28.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.7.1"
   }
 }
