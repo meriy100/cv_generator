@@ -182,11 +182,11 @@ function main() {
 
     })
     body.replaceText("{history.organization}", history.organization)
-    body.replaceText("{history.startMonth}", `${history.startMonth.year}/${history.startMonth.month.toString().padStart(2, '0')}`)
+    body.replaceText("{history.startMonth}", yearMonthToString(history.startMonth))
     if (history.endMonth === null) {
       body.replaceText("{history.endMonth}", "現在")
     } else {
-      body.replaceText("{history.endMonth}", `${history.endMonth.year}/${history.endMonth.month.toString().padStart(2, '0')}`)
+      body.replaceText("{history.endMonth}", yearMonthToString(history.endMonth))
     }
     const tableIndex = findTableWithText(body, "{product.title}")
     const table = body.getChild(tableIndex).asTable()
@@ -194,11 +194,11 @@ function main() {
     table.removeRow(1)
     history.products.forEach(product => {
       const row = templateRow.copy()
-      row.replaceText("{product.startMonth}", `${product.startMonth.year}/${product.startMonth.month.toString().padStart(2, '0')}`)
+      row.replaceText("{product.startMonth}", yearMonthToString(product.startMonth))
       if (product.endMonth === null) {
         row.replaceText("{product.endMonth}", "現在")
       } else {
-        row.replaceText("{product.endMonth}", `${product.endMonth.year}/${product.endMonth.month.toString().padStart(2, '0')}`)
+        row.replaceText("{product.endMonth}", yearMonthToString(product.endMonth))
       }
       row.replaceText("{product.title}", product.title)
       replaceListItem(row.getCell(findTableCellWithText(row, "{product.description}")), "{product.description}", product.description)
