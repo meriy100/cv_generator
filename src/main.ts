@@ -2,7 +2,59 @@ const properties = PropertiesService.getScriptProperties()
 const API_HOST = properties.getProperty('PORTFOLIO_API_HOST')
 const TEMPLATE_DOC_ID = properties.getProperty('TEMPLATE_DOC_ID')
 
-console.log(TEMPLATE_DOC_ID)
+export interface UrlFetchAppClient {
+  host: string
+}
+
+export const NewUrlFetchAppClient = (host: string): UrlFetchAppClient => {
+  return { host }
+}
+
+export interface Profile {
+  job: string
+  description: string
+  skillDescription: string[]
+  licenses: string[]
+  pr: string
+}
+
+export interface History {
+  organization: string
+  products: Product[]
+  startMonth: YearMonth
+  endMonth: YearMonth | null
+}
+
+export interface Product {
+  title: string
+  startMonth: YearMonth
+  endMonth: YearMonth | null
+  description: string[]
+  technologies: string[]
+}
+
+export interface YearMonth {
+  year: number
+  month: number
+}
+
+export const yearMonthToString = (yearMonth: YearMonth) => {
+  return `${yearMonth.year}/${yearMonth.month.toString().padStart(2, '0')}`
+}
+
+
+const fetchProfile = (urlFetchAppClient: UrlFetchAppClient): Profile => {
+  const response = UrlFetchApp.fetch(`${urlFetchAppClient.host}/profile`).getContentText("UTF-8")
+  return JSON.parse(response).data
+}
+
+
+const fetchHistories = (urlFetchAppClient: UrlFetchAppClient): History[] => {
+  const response = UrlFetchApp.fetch(`${urlFetchAppClient.host}/histories`).getContentText("UTF-8")
+  return JSON.parse(response).data
+}
+
+
 
 const fileCopy = (timestamp: Date) => {
   const formattedDate = Utilities.formatDate(timestamp, "JST", "yyyy-MM-dd")
@@ -11,6 +63,19 @@ const fileCopy = (timestamp: Date) => {
   const newFile = templateFile.makeCopy(`${fileName}-${formattedDate}`)
 
   return newFile.getId()
+}
+
+const findTableCellWithText = (row: GoogleAppsScript.Document.TableRow, text: string): number => {
+  for (let i=0; i<row.getNumChildren(); i++) {
+    const child = row.getChild(i)
+
+    if (child.getType() ==  DocumentApp.ElementType.TABLE_CELL) {
+      const table = child.asTableCell()
+      if (table.findText(text)) {
+        return i
+      }
+    }
+  }
 }
 
 const findTableWithText = (body: GoogleAppsScript.Document.Body, text: string) => {
@@ -59,16 +124,6 @@ const replaceListItem = (body: GoogleAppsScript.Document.Body | GoogleAppsScript
   }
 }
 
-const fetchProfile = () => {
-  const response = UrlFetchApp.fetch(`${API_HOST}/profile`).getContentText("UTF-8") 
-  return JSON.parse(response).data
-}
-
-const fetchHistories = () => {
-  const response = UrlFetchApp.fetch(`${API_HOST}/histories`).getContentText("UTF-8") 
-  return JSON.parse(response).data
-}  
-
 const getHistoryTemplate = (body: GoogleAppsScript.Document.Body) => {
   for (let i=0; i<body.getNumChildren(); i++) {
     const child = body.getChild(i)
@@ -96,8 +151,9 @@ function main() {
   const docID = fileCopy(timestamp)
   const doc = DocumentApp.openById(docID)
   const body = doc.getBody()
+  const client = NewUrlFetchAppClient(API_HOST)
 
-  const profile = fetchProfile()
+  const profile = fetchProfile(client)
 
   body.replaceText("{timestamp}", Utilities.formatDate(timestamp, "JST", "yyyy/MM/dd"))
   body.replaceText("{profile.job}", profile.job)
@@ -111,7 +167,7 @@ function main() {
     body.removeChild(body.getChild(start))
   }
 
-  fetchHistories().forEach(history => {
+  fetchHistories(client).forEach(history => {
     [...historyTemplate].reverse().forEach(historyTemplateItem => {
       switch(historyTemplateItem.getType()) {
         case DocumentApp.ElementType.PARAGRAPH: {
@@ -145,8 +201,8 @@ function main() {
         row.replaceText("{product.endMonth}", `${product.endMonth.year}/${product.endMonth.month.toString().padStart(2, '0')}`)
       }
       row.replaceText("{product.title}", product.title)
-      replaceListItem(row.getCell(1), "{product.description}", product.description)
-      replaceListItem(row.getCell(2), "{product.technologies}", product.technologies)
+      replaceListItem(row.getCell(findTableCellWithText(row, "{product.description}")), "{product.description}", product.description)
+      replaceListItem(row.getCell(findTableCellWithText(row, "{product.technologies}")), "{product.technologies}", product.technologies)
       table.appendTableRow(row)
     }) 
   })
