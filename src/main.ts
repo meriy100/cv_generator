@@ -4,16 +4,16 @@ const TEMPLATE_DOC_ID = properties.getProperty('TEMPLATE_DOC_ID')
 
 console.log(TEMPLATE_DOC_ID)
 
-const fileCopy = (timestamp) => {
+const fileCopy = (timestamp: Date) => {
   const formattedDate = Utilities.formatDate(timestamp, "JST", "yyyy-MM-dd");
   const fileName = "職務経歴書";
-  const sourcefile = DriveApp.getFileById(TEMPLATE_DOC_ID);
-  const newFile = sourcefile.makeCopy(`${fileName}-${formattedDate}`);
+  const templateFile = DriveApp.getFileById(TEMPLATE_DOC_ID);
+  const newFile = templateFile.makeCopy(`${fileName}-${formattedDate}`);
 
   return newFile.getId();
 }
 
-const findTableWithText = (body, text) => {
+const findTableWithText = (body: GoogleAppsScript.Document.Body, text: string) => {
   for (let i=0; i<body.getNumChildren(); i++) {
     const child = body.getChild(i);
 
@@ -26,7 +26,7 @@ const findTableWithText = (body, text) => {
   }
 };
 
-const findListItemWithText = (body, text) => {
+const findListItemWithText = (body: GoogleAppsScript.Document.Body | GoogleAppsScript.Document.TableCell, text) => {
   let index = -1;
 
   for (let i=0; i<body.getNumChildren(); i++) {
@@ -42,7 +42,7 @@ const findListItemWithText = (body, text) => {
   return index;
 };
 
-const replaceListItem = (body, placeholder, list) => {
+const replaceListItem = (body: GoogleAppsScript.Document.Body | GoogleAppsScript.Document.TableCell, placeholder: string, list: string[]) => {
   const index = findListItemWithText(body, placeholder);
   const listItem = body.getChild(index).asListItem();
   const glyphType = listItem.getGlyphType();
@@ -69,17 +69,21 @@ const fetchHistories = () => {
   return JSON.parse(response).data;
 };  
 
-const getHistoryTemplate = (body) => {
+const getHistoryTemplate = (body: GoogleAppsScript.Document.Body) => {
   for (let i=0; i<body.getNumChildren(); i++) {
     const child = body.getChild(i);
-    if (child.getText() == "***history-template-start***") {
-      const historyTemplate = [];
-      for (let j=i+1; j<body.getNumChildren(); j++) {
-        const child2 = body.getChild(j);
-        if (child2.getText() == "***history-template-end***") {
-          return {historyTemplate, start: i, end: j};
+    if (child.getType() === DocumentApp.ElementType.PARAGRAPH)  {
+      if ((child as GoogleAppsScript.Document.Paragraph).getText() == "***history-template-start***") {
+        const historyTemplate = [];
+        for (let j=i+1; j<body.getNumChildren(); j++) {
+          const child2 = body.getChild(j);
+          if (child2.getType() === DocumentApp.ElementType.PARAGRAPH)  {
+            if ((child2 as GoogleAppsScript.Document.Paragraph).getText() == "***history-template-end***") {
+              return {historyTemplate, start: i, end: j};
+            }
+          }
+          historyTemplate.push(child2.copy());
         }
-        historyTemplate.push(child2.copy());
       }
     }
   }
