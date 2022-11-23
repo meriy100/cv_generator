@@ -1,8 +1,13 @@
-const API_HOST = "https://meriy100.jp.ngrok.io"
+const properties = PropertiesService.getScriptProperties()
+const API_HOST = properties.getProperty('PORTFOLIO_API_HOST')
+const TEMPLATE_DOC_ID = properties.getProperty('TEMPLATE_DOC_ID')
+
+console.log(TEMPLATE_DOC_ID)
+
 const fileCopy = (timestamp) => {
   const formattedDate = Utilities.formatDate(timestamp, "JST", "yyyy-MM-dd");
   const fileName = "職務経歴書";
-  const sourcefile = DriveApp.getFileById("1kFrEOKuT-ddIpN21D8dhzJwtWeUvcS2Zm7EolgKMJkQ");
+  const sourcefile = DriveApp.getFileById(TEMPLATE_DOC_ID);
   const newFile = sourcefile.makeCopy(`${fileName}-${formattedDate}`);
 
   return newFile.getId();

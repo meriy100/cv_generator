@@ -13,11 +13,12 @@ $ clasp pull ${GAS PROJECT ID} # .clasp.json を編集する必要があるか�
 ```
 
 ```
-# ローカル実行
-$ clasp run main
-```
-
-```
 # CAS プロジェクトへの push 
 $ clasp push
 ```
+
+```
+# ローカルから実行 (push が必要)
+$ clasp run main
+```
+
